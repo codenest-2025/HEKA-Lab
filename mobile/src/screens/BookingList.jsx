@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, StyleSheet, RefreshControl, Platform, StatusBar } from "react-native";
+import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
 import { Text, Card, Chip, ActivityIndicator, Snackbar, Divider } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
@@ -93,7 +93,6 @@ export default function BookingList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}><Text style={styles.title}>Booking History</Text></View>
       {loading ? (
         <ActivityIndicator animating size="large" style={{ marginTop: 60 }} />
       ) : (
@@ -119,13 +118,7 @@ export default function BookingList() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f6f8" },
-  header: {
-    padding: 16,
-    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 10 : 16,
-    backgroundColor: "#fff",
-    elevation: 2
-  },
-  title: { fontSize: 20, fontWeight: "bold", color: "#6200ee" },
+
   card: { borderRadius: 14, backgroundColor: "#fff" },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },

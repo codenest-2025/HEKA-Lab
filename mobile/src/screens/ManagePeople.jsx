@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, StyleSheet, TouchableOpacity, Platform, StatusBar } from "react-native";
+import { View, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import {
   Text, FAB, Portal, Modal, TextInput, Button, Card,
   Snackbar, ActivityIndicator, Chip, Menu, SegmentedButtons
@@ -93,8 +93,8 @@ export default function ManagePeople() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Manage People</Text>
+      {/* Tab Toggle */}
+      <View style={styles.tabRow}>
         <SegmentedButtons
           value={activeTab}
           onValueChange={setActiveTab}
@@ -238,14 +238,13 @@ export default function ManagePeople() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f6f8" },
-  header: {
-    padding: 16,
-    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 10 : 16,
+  tabRow: {
+    padding: 14,
     backgroundColor: "#fff",
-    elevation: 2,
-    gap: 10
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    elevation: 1,
   },
-  title: { fontSize: 20, fontWeight: "bold", color: "#6200ee" },
   toggle: { marginTop: 4 },
   listContainer: { padding: 16, gap: 10 },
   card: { borderRadius: 10 },

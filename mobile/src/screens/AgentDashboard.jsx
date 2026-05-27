@@ -6,6 +6,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function AgentDashboard() {
   const { user, logout, refreshProfile } = useAuth();
 
@@ -25,6 +27,9 @@ export default function AgentDashboard() {
 
   const loadData = useCallback(async () => {
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+
       await refreshProfile();
       const [payRes, bookRes] = await Promise.all([
         API.get("/payments"),
@@ -86,7 +91,7 @@ export default function AgentDashboard() {
     <View style={styles.container}>
       {/* Premium Teal Gradient Header */}
       <LinearGradient
-        colors={["#0a3c30", "#0e6655", "#117a65"]}
+        colors={["#003d32", "#005c4b", "#007963"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -103,7 +108,7 @@ export default function AgentDashboard() {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator animating style={{ marginTop: 80 }} size="large" color="#0e6655" />
+        <ActivityIndicator animating style={{ marginTop: 80 }} size="large" color="#005c4b" />
       ) : (
         <FlatList
           data={activeTab === "bookings" ? bookings : payments}
@@ -131,11 +136,11 @@ export default function AgentDashboard() {
                 <Card style={styles.metricCard}>
                   <Card.Content style={styles.metricContent}>
                     <View style={[styles.metricIconContainer, { backgroundColor: "#e0f2f1" }]}>
-                      <Icon name="cash-multiple" size={20} color="#0e6655" />
+                      <Icon name="cash-multiple" size={20} color="#005c4b" />
                     </View>
                     <View style={{ marginTop: 8 }}>
                       <Text style={styles.metricLabel}>Total Revenue</Text>
-                      <Text style={[styles.metricAmount, { color: "#0e6655" }]}>₹{totalRevenue.toFixed(2)}</Text>
+                      <Text style={[styles.metricAmount, { color: "#005c4b" }]}>₹{totalRevenue.toFixed(2)}</Text>
                       <Text style={styles.metricSubText}>Total earnings</Text>
                     </View>
                   </Card.Content>
@@ -152,7 +157,7 @@ export default function AgentDashboard() {
                 style={styles.payButton}
                 icon="send"
                 contentStyle={{ paddingVertical: 6 }}
-                buttonColor="#0e6655"
+                buttonColor="#005c4b"
                 disabled={balance >= 0}
               >
                 {balance < 0 ? `Pay Admin share (₹${Math.abs(balance).toFixed(2)})` : "No admin payment due"}
@@ -235,7 +240,7 @@ export default function AgentDashboard() {
                       {!isSettled && (
                         <Button
                           mode="contained"
-                          buttonColor="#0e6655"
+                          buttonColor="#005c4b"
                           compact
                           labelStyle={{ fontSize: 10, marginHorizontal: 6, marginVertical: 4 }}
                           style={{ borderRadius: 6, alignSelf: "center", minWidth: 80 }}
@@ -302,7 +307,7 @@ export default function AgentDashboard() {
               mode={paymentMode === "Cash" ? "contained" : "outlined"}
               onPress={() => setPaymentMode("Cash")}
               style={{ flex: 1 }}
-              buttonColor={paymentMode === "Cash" ? "#0e6655" : undefined}
+              buttonColor={paymentMode === "Cash" ? "#005c4b" : undefined}
             >
               Cash
             </Button>
@@ -310,7 +315,7 @@ export default function AgentDashboard() {
               mode={paymentMode === "Bank" ? "contained" : "outlined"}
               onPress={() => setPaymentMode("Bank")}
               style={{ flex: 1, marginLeft: 10 }}
-              buttonColor={paymentMode === "Bank" ? "#0e6655" : undefined}
+              buttonColor={paymentMode === "Bank" ? "#005c4b" : undefined}
             >
               Bank
             </Button>
@@ -322,7 +327,7 @@ export default function AgentDashboard() {
             mode="outlined"
             style={styles.input}
           />
-          <Button mode="contained" onPress={handleSendShare} loading={saving} disabled={saving} style={{ marginTop: 12 }} buttonColor="#0e6655">
+          <Button mode="contained" onPress={handleSendShare} loading={saving} disabled={saving} style={{ marginTop: 12 }} buttonColor="#005c4b">
             Submit Payment
           </Button>
           <Button mode="text" onPress={() => { setVisible(false); setSelectedBookingId(null); setAmount(""); setNotes(""); }} textColor="#757575">
@@ -341,7 +346,7 @@ export default function AgentDashboard() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f6f8fb" },
   header: {
-    backgroundColor: "#0e6655",
+    backgroundColor: "#005c4b",
     paddingTop: 48,
     paddingBottom: 48,
     paddingHorizontal: 20,

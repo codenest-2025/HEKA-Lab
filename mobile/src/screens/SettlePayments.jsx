@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, StyleSheet, Platform, StatusBar } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { Text, Card, Button, TextInput, Snackbar, ActivityIndicator, SegmentedButtons, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import API from "../utils/api";
@@ -62,8 +62,6 @@ export default function SettlePayments() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}><Text style={styles.title}>Settle Payments</Text></View>
-
       {loading ? <ActivityIndicator animating style={{ margin: 40 }} /> : (
         <View style={{ padding: 16 }}>
           <Card style={styles.card}>
@@ -154,13 +152,6 @@ export default function SettlePayments() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f6f8" },
-  header: {
-    padding: 16,
-    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 10 : 16,
-    backgroundColor: "#fff",
-    elevation: 2
-  },
-  title: { fontSize: 20, fontWeight: "bold", color: "#6200ee" },
   card: { borderRadius: 12, marginBottom: 16 },
   sectionLabel: { fontSize: 13, fontWeight: "600", color: "#616161", marginBottom: 8, marginTop: 4 },
   input: { marginBottom: 12 },

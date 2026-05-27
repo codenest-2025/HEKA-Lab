@@ -10,6 +10,6 @@ router.route("/")
 
 router.route("/tests")
   .get(protect, getTests)
-  .post(protect, authorize("admin"), createTest);
+  .post(protect, authorize("admin", "staff"), createTest);
 
 module.exports = router;

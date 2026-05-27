@@ -22,16 +22,16 @@ const seedAdmin = async () => {
 
     const admin = new User({
       name: "Default Admin",
-      username: "admin",
-      password: "adminpassword123",
+      username: "a",
+      password: "123456",
       role: "admin"
     });
 
     await admin.save();
     console.log("=========================================");
     console.log("Admin user seeded successfully!");
-    console.log("Username: admin");
-    console.log("Password: adminpassword123");
+    console.log("Username: a");
+    console.log("Password: 123456");
     console.log("=========================================");
     process.exit(0);
   } catch (error) {

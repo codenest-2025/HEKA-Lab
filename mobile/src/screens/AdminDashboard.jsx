@@ -50,10 +50,6 @@ export default function AdminDashboard({ navigation }) {
     loadSummary();
   };
 
-  const netPosition = summary
-    ? summary.summary.totalOwedByAgents - summary.summary.totalOwedToAgents - summary.summary.totalOwedToLabs
-    : 0;
-
   return (
     <ScrollView
       style={styles.container}
@@ -89,15 +85,15 @@ export default function AdminDashboard({ navigation }) {
             <View style={styles.metricsRow}>
               <MetricCard
                 icon="arrow-down-bold"
-                label="Agents Owe You"
-                amount={summary.summary.totalOwedByAgents}
+                label="From Centers"
+                amount={summary.summary.totalFromCenters}
                 color="#e53935"
                 iconBg="#ffebee"
               />
               <MetricCard
                 icon="arrow-up-bold"
-                label="You Owe Agents"
-                amount={summary.summary.totalOwedToAgents}
+                label="To Agents"
+                amount={summary.summary.totalToAgents}
                 color="#43a047"
                 iconBg="#e8f5e9"
               />
@@ -105,17 +101,17 @@ export default function AdminDashboard({ navigation }) {
             <View style={styles.metricsRow}>
               <MetricCard
                 icon="flask"
-                label="You Owe Labs"
-                amount={summary.summary.totalOwedToLabs}
+                label="To Labs"
+                amount={summary.summary.totalToLabs}
                 color="#1e88e5"
                 iconBg="#e3f2fd"
               />
               <MetricCard
                 icon="scale-balance"
-                label="Net Balance"
-                amount={netPosition}
-                color={netPosition >= 0 ? "#0e6655" : "#e53935"}
-                iconBg={netPosition >= 0 ? "#e0f2f1" : "#ffebee"}
+                label="Net Balance (1 Mo)"
+                amount={summary.summary.netBalanceOneMonth}
+                color={summary.summary.netBalanceOneMonth >= 0 ? "#0e6655" : "#e53935"}
+                iconBg={summary.summary.netBalanceOneMonth >= 0 ? "#e0f2f1" : "#ffebee"}
               />
             </View>
           </View>
@@ -152,41 +148,61 @@ export default function AdminDashboard({ navigation }) {
             </Card.Content>
           </Card>
 
-          {/* Agent Balances */}
-          <Text style={styles.sectionTitle}>Agent Balances</Text>
-          {summary.agents.map((agent) => (
-            <Card key={agent._id} style={styles.listCard}>
-              <Card.Content style={styles.listRow}>
-                <View style={styles.listLeft}>
-                  <View style={[styles.circularIconBg, { backgroundColor: "#f3e5f5" }]}>
-                    <Icon name="account-tie" size={22} color="#8e24aa" />
+          {/* Center Balances */}
+          <Text style={styles.sectionTitle}>Center Balances</Text>
+          {summary.centers.map((center) => (
+            <Card key={center._id} style={styles.listCard}>
+              <Card.Content>
+                <View style={styles.listRow}>
+                  <View style={styles.listLeft}>
+                    <View style={[styles.circularIconBg, { backgroundColor: "#e0f2f1" }]}>
+                      <Icon name="storefront-outline" size={22} color="#0e6655" />
+                    </View>
+                    <View style={{ marginLeft: 12 }}>
+                      <Text style={styles.listName}>{center.name}</Text>
+                      <Text style={styles.listSub}>Center Balance</Text>
+                    </View>
                   </View>
-                  <View style={{ marginLeft: 12 }}>
-                    <Text style={styles.listName}>{agent.name}</Text>
-                    <Text style={styles.listSub}>{agent.agentPercentage}% commission</Text>
-                  </View>
+                  <Chip
+                    textStyle={{
+                      color: center.balance > 0 ? "#e53935" : "#43a047",
+                      fontWeight: "bold"
+                    }}
+                    style={{
+                      backgroundColor: center.balance > 0 ? "#ffebee" : "#e8f5e9"
+                    }}
+                  >
+                    {center.balance > 0 ? `Payable to Admin: ₹${center.balance.toFixed(2)}` : "Cleared"}
+                  </Chip>
                 </View>
-                <Chip
-                  textStyle={{
-                    color: agent.balance < 0 ? "#e53935" : agent.balance > 0 ? "#43a047" : "#757575",
-                    fontWeight: "bold"
-                  }}
-                  style={{
-                    backgroundColor:
-                      agent.balance < 0 ? "#ffebee" : agent.balance > 0 ? "#e8f5e9" : "#eeeeee"
-                  }}
-                >
-                  {agent.balance < 0
-                    ? `Payable to Admin: ₹${Math.abs(agent.balance).toFixed(2)}`
-                    : agent.balance > 0
-                    ? `Admin Payable: ₹${agent.balance.toFixed(2)}`
-                    : "Dues Cleared"}
-                </Chip>
+
+                {center.agentsToPay && center.agentsToPay.length > 0 && (
+                  <View style={{ marginTop: 12, borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 8 }}>
+                    <Text style={{ fontSize: 12, fontWeight: "bold", color: "#757575", marginBottom: 6 }}>
+                      Agents to Pay:
+                    </Text>
+                    {center.agentsToPay.map((agent) => (
+                      <View key={agent._id} style={[styles.listRow, { marginVertical: 4, paddingLeft: 8 }]}>
+                        <View style={styles.listLeft}>
+                          <Icon name="account-tie" size={18} color="#8e24aa" />
+                          <Text style={[styles.listName, { fontSize: 13, marginLeft: 8 }]}>{agent.name}</Text>
+                        </View>
+                        <Chip
+                          compact
+                          textStyle={{ color: "#43a047", fontWeight: "bold", fontSize: 11 }}
+                          style={{ backgroundColor: "#e8f5e9" }}
+                        >
+                          {`Pay Agent: ₹${agent.balance.toFixed(2)}`}
+                        </Chip>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </Card.Content>
             </Card>
           ))}
-          {summary.agents.length === 0 && (
-            <Text style={styles.empty}>No agents configured yet.</Text>
+          {summary.centers.length === 0 && (
+            <Text style={styles.empty}>No centers configured yet.</Text>
           )}
 
           {/* Lab Balances */}
@@ -207,7 +223,7 @@ export default function AdminDashboard({ navigation }) {
                   textStyle={{ color: lab.balance > 0 ? "#e53935" : "#43a047", fontWeight: "bold" }}
                   style={{ backgroundColor: lab.balance > 0 ? "#ffebee" : "#e8f5e9" }}
                 >
-                  {lab.balance > 0 ? `Owe ₹${lab.balance.toFixed(2)}` : "Clear"}
+                  {lab.balance > 0 ? `Payable to Lab: ₹${lab.balance.toFixed(2)}` : "Clear"}
                 </Chip>
               </Card.Content>
             </Card>

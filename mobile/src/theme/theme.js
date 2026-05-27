@@ -4,16 +4,16 @@ export const paperTheme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    primary: "#6200ee",
-    accent: "#03dac4",
-    background: "#f8f9fa",
+    primary: "#005c4b",
+    accent: "#00a588",
+    background: "#f4f6f5",
     surface: "#ffffff",
     text: "#212121",
     error: "#b00020",
-    success: "#4caf50",
-    info: "#2196f3",
-    warning: "#ff9800",
+    success: "#2e7d32",
+    info: "#005c4b",
+    warning: "#ef6c00",
     cardBackground: "#ffffff",
-    cardBorder: "#e0e0e0"
+    cardBorder: "#e2e8f0"
   }
 };

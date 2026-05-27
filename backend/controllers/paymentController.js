@@ -2,6 +2,7 @@ const Payment = require("../models/Payment");
 const User = require("../models/User");
 const Lab = require("../models/Lab");
 const Booking = require("../models/Booking");
+const Center = require("../models/Center");
 
 const settleCoveredBookingsForAgent = async (agentId, amount) => {
   let remainingAmount = amount;
@@ -199,34 +200,95 @@ const recordPayment = async (req, res) => {
 // @access  Private Admin
 const getFinancialSummary = async (req, res) => {
   try {
-    const agents = await User.find({ role: "agent" }).select("name balance agentPercentage");
-    const labs = await Lab.find({}).select("name balance labPercentage");
+    const centers = await Center.find({});
+    const agents = await User.find({ role: "agent" });
+    const labs = await Lab.find({});
+    const bookings = await Booking.find({});
+    const payments = await Payment.find({});
 
-    let totalOwedByAgents = 0; // Negative agent balances (agent owes admin)
-    let totalOwedToAgents = 0; // Positive agent balances (admin owes agent)
-    let totalOwedToLabs = 0;   // Positive lab balances
+    const centerData = [];
+    let totalFromCenters = 0;
 
-    agents.forEach(agent => {
-      if (agent.balance < 0) {
-        totalOwedByAgents += Math.abs(agent.balance);
-      } else {
-        totalOwedToAgents += agent.balance;
+    for (const center of centers) {
+      // Find all bookings for this center
+      const centerBookings = bookings.filter(
+        (b) => b.center && b.center.toString() === center._id.toString()
+      );
+      const totalBookingsPrice = centerBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+      const totalCommissions = centerBookings.reduce((sum, b) => sum + (b.totalAgentCommission || 0), 0);
+
+      // Find all agents assigned to this center
+      const centerAgents = agents.filter(
+        (a) => a.center && a.center.toString() === center._id.toString()
+      );
+      const centerAgentIds = centerAgents.map((a) => a._id.toString());
+
+      // Find payments from agents of this center to Admin
+      const centerPayments = payments.filter(
+        (p) => p.type === "AgentToAdmin" && p.agent && centerAgentIds.includes(p.agent.toString())
+      );
+      const totalPaid = centerPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+      // Center balance = (total - agenta - agentb - ...) - payments
+      const centerBalance = Math.max((totalBookingsPrice - totalCommissions) - totalPaid, 0);
+
+      // Filter agents of this center whom the admin needs to pay (agent.balance > 0)
+      const agentsToPay = centerAgents
+        .filter((a) => a.balance > 0)
+        .map((a) => ({
+          _id: a._id,
+          name: a.name,
+          balance: a.balance,
+          agentPercentage: a.agentPercentage
+        }));
+
+      centerData.push({
+        _id: center._id,
+        name: center.name,
+        balance: centerBalance,
+        agentsToPay
+      });
+
+      totalFromCenters += centerBalance;
+    }
+
+    // Sum up agents that the admin needs to pay
+    let totalToAgents = 0;
+    agents.forEach((agent) => {
+      if (agent.balance > 0) {
+        totalToAgents += agent.balance;
       }
     });
 
-    labs.forEach(lab => {
+    // Sum up labs that the admin needs to pay
+    let totalToLabs = 0;
+    labs.forEach((lab) => {
       if (lab.balance > 0) {
-        totalOwedToLabs += lab.balance;
+        totalToLabs += lab.balance;
       }
     });
+
+    // Net balance of 1 month: (totalPrice - agentCommissions - labShares) for bookings created in last 30 days
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+
+    const oneMonthBookings = bookings.filter(
+      (b) => new Date(b.createdAt) >= oneMonthAgo
+    );
+    const netBalanceOneMonth = oneMonthBookings.reduce((sum, b) => {
+      const agentShare = b.totalAgentCommission || 0;
+      const labShare = b.labShare || 0;
+      return sum + ((b.totalPrice || 0) - agentShare - labShare);
+    }, 0);
 
     res.json({
       summary: {
-        totalOwedByAgents,
-        totalOwedToAgents,
-        totalOwedToLabs
+        totalFromCenters,
+        totalToAgents,
+        totalToLabs,
+        netBalanceOneMonth
       },
-      agents,
+      centers: centerData,
       labs
     });
   } catch (error) {

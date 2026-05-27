@@ -23,6 +23,27 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkAuth();
+
+    // Set up interceptor to handle 401 Unauthorized globally
+    const interceptor = API.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response && error.response.status === 401) {
+          try {
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("user");
+          } catch (e) {
+            console.error("Failed to clear auth storage on 401:", e);
+          }
+          setUser(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      API.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   const login = async (username, password) => {
@@ -61,11 +82,15 @@ export const AuthProvider = ({ children }) => {
 
   const refreshProfile = async () => {
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
       const res = await API.get("/auth/profile");
       await AsyncStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
     } catch (e) {
-      console.error("Profile refresh error:", e);
+      if (e.response?.status !== 401) {
+        console.error("Profile refresh error:", e);
+      }
     }
   };
 
