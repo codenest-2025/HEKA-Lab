@@ -1,0 +1,12 @@
+{
+  "name": "lab-commission-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:start": "npm --prefix backend start",
+    "mobile:start": "npm --prefix mobile start",
+    "mobile:android": "npm --prefix mobile run android",
+    "mobile:ios": "npm --prefix mobile run ios"
+  }
+}
