@@ -25,7 +25,6 @@ export default function AppHeader({ title }) {
       <Text style={styles.title} numberOfLines={1}>{title}</Text>
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
         <Icon name="logout" size={20} color="#fff" />
-        <Text style={styles.logoutLabel}>Logout</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

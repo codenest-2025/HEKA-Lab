@@ -8,7 +8,7 @@ export default function SettlePayments() {
   const [agents, setAgents] = useState([]);
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState("AgentToAdmin");
+  const [type, setType] = useState("AdminToAgent");
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [selectedLab, setSelectedLab] = useState(null);
   const [amount, setAmount] = useState("");
@@ -38,7 +38,7 @@ export default function SettlePayments() {
 
   const handleSettle = async () => {
     if (!amount || parseFloat(amount) <= 0) { setSnack("Enter a valid amount"); return; }
-    if ((type === "AgentToAdmin" || type === "AdminToAgent") && !selectedAgent) { setSnack("Select an agent"); return; }
+    if (type === "AdminToAgent" && !selectedAgent) { setSnack("Select an agent"); return; }
     if (type === "AdminToLab" && !selectedLab) { setSnack("Select a lab"); return; }
     setSaving(true);
     try {
@@ -71,14 +71,13 @@ export default function SettlePayments() {
                 value={type}
                 onValueChange={setType}
                 buttons={[
-                  { value: "AgentToAdmin", label: "Agent→Admin" },
-                  { value: "AdminToAgent", label: "Admin→Agent" },
-                  { value: "AdminToLab", label: "Admin→Lab" },
+                  { value: "AdminToAgent", label: "Admin → Agent" },
+                  { value: "AdminToLab", label: "Admin → Lab" },
                 ]}
                 style={{ marginBottom: 16 }}
               />
 
-              {(type === "AgentToAdmin" || type === "AdminToAgent") && (
+              {type === "AdminToAgent" && (
                 <Menu
                   visible={agentMenuVisible}
                   onDismiss={() => setAgentMenuVisible(false)}

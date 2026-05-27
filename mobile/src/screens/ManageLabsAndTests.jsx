@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, StyleSheet } from "react-native";
+import { View, FlatList, StyleSheet, Alert } from "react-native";
 import {
   Text, FAB, Portal, Modal, TextInput, Button, Card,
-  Snackbar, ActivityIndicator, Menu, SegmentedButtons
+  Snackbar, ActivityIndicator, Menu, SegmentedButtons, IconButton
 } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import API from "../utils/api";
@@ -23,6 +23,9 @@ export default function ManageLabsAndTests() {
   const [percentage, setPercentage] = useState(""); // Only for Lab
   const [price, setPrice] = useState(""); // Only for Test
   const [selectedLab, setSelectedLab] = useState(null); // Only for Test
+
+  // Edit State
+  const [editingTest, setEditingTest] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [snack, setSnack] = useState("");
@@ -46,6 +49,46 @@ export default function ManageLabsAndTests() {
     loadData();
   }, [loadData]);
 
+  const openAddModal = () => {
+    setEditingTest(null);
+    setName("");
+    setPercentage("");
+    setPrice("");
+    setSelectedLab(null);
+    setVisible(true);
+  };
+
+  const openEditModal = (test) => {
+    setEditingTest(test);
+    setName(test.name);
+    setPrice(test.price.toString());
+    setSelectedLab(test.lab);
+    setVisible(true);
+  };
+
+  const handleDeleteTest = (testId) => {
+    Alert.alert(
+      "Delete Test",
+      "Are you sure you want to delete this test?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await API.delete(`/labs/tests/${testId}`);
+              setSnack("Test deleted successfully!");
+              loadData();
+            } catch (e) {
+              setSnack(e.response?.data?.message || "Error deleting test");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleAdd = async () => {
     if (activeTab === "labs") {
       if (!name || !percentage) {
@@ -68,21 +111,31 @@ export default function ManageLabsAndTests() {
         });
         setSnack("Lab added!");
       } else {
-        await API.post("/labs/tests", {
-          name,
-          price: parseFloat(price),
-          labId: selectedLab._id
-        });
-        setSnack("Test added!");
+        if (editingTest) {
+          await API.put(`/labs/tests/${editingTest._id}`, {
+            name,
+            price: parseFloat(price),
+            labId: selectedLab._id
+          });
+          setSnack("Test updated successfully!");
+        } else {
+          await API.post("/labs/tests", {
+            name,
+            price: parseFloat(price),
+            labId: selectedLab._id
+          });
+          setSnack("Test added!");
+        }
       }
       setVisible(false);
       setName("");
       setPercentage("");
       setPrice("");
       setSelectedLab(null);
+      setEditingTest(null);
       loadData();
     } catch (e) {
-      setSnack(e.response?.data?.message || "Error adding item");
+      setSnack(e.response?.data?.message || "Error saving item");
     } finally {
       setSaving(false);
     }
@@ -133,11 +186,27 @@ export default function ManageLabsAndTests() {
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <Card.Content style={styles.row}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.labName}>{item.name}</Text>
                   <Text style={styles.labSub}>{item.lab?.name} · {item.lab?.labPercentage}% share</Text>
                 </View>
-                <Text style={styles.price}>₹{item.price}</Text>
+                <View style={styles.rightActionsRow}>
+                  <Text style={styles.price}>₹{item.price}</Text>
+                  <IconButton
+                    icon="pencil"
+                    size={20}
+                    iconColor="#0e6655"
+                    onPress={() => openEditModal(item)}
+                    style={styles.actionButton}
+                  />
+                  <IconButton
+                    icon="delete"
+                    size={20}
+                    iconColor="#d32f2f"
+                    onPress={() => handleDeleteTest(item._id)}
+                    style={styles.actionButton}
+                  />
+                </View>
               </Card.Content>
             </Card>
           )}
@@ -148,7 +217,7 @@ export default function ManageLabsAndTests() {
       <Portal>
         <Modal visible={visible} onDismiss={() => setVisible(false)} contentContainerStyle={styles.modal}>
           <Text style={styles.modalTitle}>
-            {activeTab === "labs" ? "Add New Lab" : "Add New Test"}
+            {activeTab === "labs" ? "Add New Lab" : editingTest ? "Edit Test" : "Add New Test"}
           </Text>
           <TextInput label="Name" value={name} onChangeText={setName} mode="outlined" style={styles.input} />
 
@@ -200,7 +269,7 @@ export default function ManageLabsAndTests() {
           )}
 
           <Button mode="contained" onPress={handleAdd} loading={saving} disabled={saving} style={{ marginTop: 12 }}>
-            {activeTab === "labs" ? "Add Lab" : "Add Test"}
+            {activeTab === "labs" ? "Add Lab" : editingTest ? "Save Changes" : "Add Test"}
           </Button>
           <Button mode="text" onPress={() => setVisible(false)}>
             Cancel
@@ -211,7 +280,7 @@ export default function ManageLabsAndTests() {
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => setVisible(true)}
+        onPress={openAddModal}
         label={activeTab === "labs" ? "Add Lab" : "Add Test"}
       />
       <Snackbar visible={!!snack} onDismiss={() => setSnack("")} duration={3000}>
@@ -242,5 +311,7 @@ const styles = StyleSheet.create({
   fab: { position: "absolute", right: 16, bottom: 24, backgroundColor: "#6200ee" },
   modal: { backgroundColor: "#fff", margin: 24, borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, color: "#212121" },
-  input: { marginBottom: 12 }
+  input: { marginBottom: 12 },
+  rightActionsRow: { flexDirection: "row", alignItems: "center", gap: 2 },
+  actionButton: { margin: 0, padding: 0 }
 });

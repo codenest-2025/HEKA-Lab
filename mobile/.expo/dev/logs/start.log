@@ -1009,3 +1009,17 @@
 {"_e":"metro:bundling:started","_t":1779911441334,"id":"2","platform":"android","environment":null,"entry":"index.js"}
 {"_e":"metro:bundling:progress","_t":1779911441335,"id":"2","progress":0,"total":1,"current":0}
 {"_e":"metro:bundling:done","_t":1779911442467,"id":"2","total":1,"ms":1133.1527}
+{"_e":"root:init","_t":1779911961294,"format":"v0-jsonl","version":"56.1.12"}
+{"_e":"env:mode","_t":1779911961296,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1779911961306,"mode":"development","files":["../..\\..\\.env"],"env":{"EXPO_PUBLIC_API_BASE_URL":"http://10.191.180.170:5000"}}
+{"_e":"devserver:start","_t":1779911962012,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1779911963113,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1779911979902,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:bundling:started","_t":1779912017002,"id":"2","platform":"android","environment":null,"entry":"index.js"}
+{"_e":"metro:bundling:progress","_t":1779912017004,"id":"2","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:done","_t":1779912017132,"id":"2","total":1,"ms":129.3202}
+{"_e":"root:init","_t":1779912516850,"format":"v0-jsonl","version":"56.1.12"}
+{"_e":"env:mode","_t":1779912516852,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1779912516862,"mode":"development","files":["../..\\..\\.env"],"env":{"EXPO_PUBLIC_API_BASE_URL":"http://10.191.180.170:5000"}}
+{"_e":"devserver:start","_t":1779912517616,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1779912518823,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
