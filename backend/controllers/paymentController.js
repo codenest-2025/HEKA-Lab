@@ -189,6 +189,12 @@ const recordPayment = async (req, res) => {
     }
 
     const payment = await Payment.create(paymentData);
+    
+    if (req.io) {
+      req.io.emit("paymentCreated", payment);
+      req.io.emit("bookingUpdated");
+    }
+
     res.status(201).json(payment);
   } catch (error) {
     res.status(500).json({ message: error.message });

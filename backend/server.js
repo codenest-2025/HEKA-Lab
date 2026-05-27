@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const http = require("http");
+const { Server } = require("socket.io");
 
 // Load Env variables
 dotenv.config();
@@ -10,10 +12,23 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Attach socket.io to req
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -50,7 +65,7 @@ const pingSelf = () => {
   }, 10 * 60 * 1000); // 10 minutes
 };
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   // Start self-ping if running in production (Render)
   if (process.env.NODE_ENV === "production" || true) {

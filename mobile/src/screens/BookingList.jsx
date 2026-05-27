@@ -3,6 +3,7 @@ import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
 import { Text, Card, Chip, ActivityIndicator, Snackbar, Divider } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import API from "../utils/api";
 
 function InfoRow({ icon, label, value, color }) {
@@ -17,6 +18,7 @@ function InfoRow({ icon, label, value, color }) {
 
 export default function BookingList() {
   const { user } = useAuth();
+  const socket = useSocket();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +33,23 @@ export default function BookingList() {
   }, []);
 
   useEffect(() => { loadBookings(); }, [loadBookings]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = () => {
+      loadBookings();
+    };
+
+    socket.on("bookingCreated", handleUpdate);
+    socket.on("bookingUpdated", handleUpdate);
+
+    return () => {
+      socket.off("bookingCreated", handleUpdate);
+      socket.off("bookingUpdated", handleUpdate);
+    };
+  }, [socket, loadBookings]);
+
   const onRefresh = () => { setRefreshing(true); loadBookings(); };
 
   const modeColor = (m) => m === "Cash" ? "#43a047" : "#1e88e5";

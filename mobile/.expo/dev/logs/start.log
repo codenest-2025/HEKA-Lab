@@ -1131,3 +1131,8 @@
 {"_e":"metro:bundling:progress","_t":1779913894385,"id":"1","progress":0.9671728745037574,"total":1148,"current":1129}
 {"_e":"metro:bundling:progress","_t":1779913894485,"id":"1","progress":0.9671728745037574,"total":1199,"current":1173}
 {"_e":"metro:bundling:done","_t":1779913894682,"id":"1","total":1199,"ms":2062.1605}
+{"_e":"root:init","_t":1779914775293,"format":"v0-jsonl","version":"56.1.12"}
+{"_e":"env:mode","_t":1779914775296,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1779914775307,"mode":"development","files":["../..\\..\\.env"],"env":{"EXPO_PUBLIC_API_BASE_URL":"http://10.191.180.170:5000"}}
+{"_e":"devserver:start","_t":1779914776255,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1779914777839,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}

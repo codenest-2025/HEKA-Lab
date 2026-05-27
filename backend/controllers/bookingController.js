@@ -132,6 +132,10 @@ const createBooking = async (req, res) => {
       paymentCollectedBy: "Staff"
     });
 
+    if (req.io) {
+      req.io.emit("bookingCreated", booking);
+    }
+
     res.status(201).json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });

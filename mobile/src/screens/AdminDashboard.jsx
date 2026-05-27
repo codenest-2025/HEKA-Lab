@@ -4,6 +4,7 @@ import { Text, Surface, Card, ActivityIndicator, Snackbar, Chip } from "react-na
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import API from "../utils/api";
 
 function MetricCard({ icon, label, amount, color, iconBg }) {
@@ -24,6 +25,7 @@ function MetricCard({ icon, label, amount, color, iconBg }) {
 
 export default function AdminDashboard({ navigation }) {
   const { user, logout } = useAuth();
+  const socket = useSocket();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,6 +46,24 @@ export default function AdminDashboard({ navigation }) {
   useEffect(() => {
     loadSummary();
   }, [loadSummary]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = () => {
+      loadSummary();
+    };
+
+    socket.on("bookingCreated", handleUpdate);
+    socket.on("bookingUpdated", handleUpdate);
+    socket.on("paymentCreated", handleUpdate);
+
+    return () => {
+      socket.off("bookingCreated", handleUpdate);
+      socket.off("bookingUpdated", handleUpdate);
+      socket.off("paymentCreated", handleUpdate);
+    };
+  }, [socket, loadSummary]);
 
   const onRefresh = () => {
     setRefreshing(true);
