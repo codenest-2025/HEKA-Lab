@@ -15,6 +15,9 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ username }).populate("center");
     if (user && (await user.matchPassword(password))) {
+      if (user.status === "inactive") {
+        return res.status(401).json({ message: "Your account is deactivated. Please contact admin." });
+      }
       res.json({
         _id: user._id,
         name: user.name,
@@ -23,6 +26,7 @@ const loginUser = async (req, res) => {
         agentPercentage: user.agentPercentage,
         center: user.center,
         balance: user.balance,
+        status: user.status,
         token: generateToken(user._id)
       });
     } else {
@@ -140,4 +144,57 @@ const getStaff = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, getUserProfile, getAgents, getStaff };
+// @desc    Update a user
+// @route   PUT /api/auth/users/:id
+// @access  Private Admin
+const updateUser = async (req, res) => {
+  const { name, username, password, agentPercentage, centerId, status } = req.body;
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (username && username !== user.username) {
+      const usernameExists = await User.findOne({ username });
+      if (usernameExists) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      user.username = username;
+    }
+
+    if (name) user.name = name;
+    if (password) user.password = password;
+    if (status) user.status = status;
+    if (agentPercentage !== undefined && user.role === "agent") {
+      user.agentPercentage = parseFloat(agentPercentage);
+    }
+    if (centerId !== undefined) {
+      user.center = centerId || undefined;
+    }
+
+    await user.save();
+    const updated = await User.findById(user._id).populate("center").select("-password");
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/auth/users/:id
+// @access  Private Admin
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await user.deleteOne();
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { loginUser, registerUser, getUserProfile, getAgents, getStaff, updateUser, deleteUser };

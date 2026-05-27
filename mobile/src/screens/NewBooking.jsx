@@ -495,12 +495,12 @@ export default function NewBooking({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f6f8" },
-  title: { fontSize: 20, fontWeight: "bold", color: "#6200ee" },
+  title: { fontSize: 20, fontWeight: "bold", color: "#0e6655" },
   card: { borderRadius: 12 },
   fieldLabel: { fontSize: 13, color: "#616161", marginBottom: 6, fontWeight: "600" },
   testRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
   testName: { fontSize: 14, fontWeight: "600", color: "#212121" },
-  testPrice: { fontSize: 15, fontWeight: "700", color: "#6200ee" },
+  testPrice: { fontSize: 15, fontWeight: "700", color: "#0e6655" },
   empty: { color: "#9e9e9e", textAlign: "center", marginVertical: 10 },
   agentRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
   agentName: { fontWeight: "600", color: "#212121" },

@@ -26,6 +26,7 @@ export default function ManageLabsAndTests() {
 
   // Edit State
   const [editingTest, setEditingTest] = useState(null);
+  const [editingLab, setEditingLab] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [snack, setSnack] = useState("");
@@ -51,6 +52,7 @@ export default function ManageLabsAndTests() {
 
   const openAddModal = () => {
     setEditingTest(null);
+    setEditingLab(null);
     setName("");
     setPercentage("");
     setPrice("");
@@ -63,6 +65,13 @@ export default function ManageLabsAndTests() {
     setName(test.name);
     setPrice(test.price.toString());
     setSelectedLab(test.lab);
+    setVisible(true);
+  };
+
+  const openEditLabModal = (lab) => {
+    setEditingLab(lab);
+    setName(lab.name);
+    setPercentage(lab.labPercentage.toString());
     setVisible(true);
   };
 
@@ -89,6 +98,29 @@ export default function ManageLabsAndTests() {
     );
   };
 
+  const handleDeleteLab = (labId) => {
+    Alert.alert(
+      "Delete Lab",
+      "Are you sure you want to delete this lab?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await API.delete(`/labs/${labId}`);
+              setSnack("Lab deleted successfully!");
+              loadData();
+            } catch (e) {
+              setSnack(e.response?.data?.message || "Error deleting lab");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleAdd = async () => {
     if (activeTab === "labs") {
       if (!name || !percentage) {
@@ -105,11 +137,19 @@ export default function ManageLabsAndTests() {
     setSaving(true);
     try {
       if (activeTab === "labs") {
-        await API.post("/labs", {
-          name,
-          labPercentage: parseFloat(percentage)
-        });
-        setSnack("Lab added!");
+        if (editingLab) {
+          await API.put(`/labs/${editingLab._id}`, {
+            name,
+            labPercentage: parseFloat(percentage)
+          });
+          setSnack("Lab updated successfully!");
+        } else {
+          await API.post("/labs", {
+            name,
+            labPercentage: parseFloat(percentage)
+          });
+          setSnack("Lab added!");
+        }
       } else {
         if (editingTest) {
           await API.put(`/labs/tests/${editingTest._id}`, {
@@ -133,6 +173,7 @@ export default function ManageLabsAndTests() {
       setPrice("");
       setSelectedLab(null);
       setEditingTest(null);
+      setEditingLab(null);
       loadData();
     } catch (e) {
       setSnack(e.response?.data?.message || "Error saving item");
@@ -166,13 +207,29 @@ export default function ManageLabsAndTests() {
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <Card.Content style={styles.row}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.labName}>{item.name}</Text>
                   <Text style={styles.labSub}>Commission: {item.labPercentage}%</Text>
+                  <Text style={[styles.balance, { color: item.balance > 0 ? "#e53935" : "#43a047", marginTop: 4 }]}>
+                    {item.balance > 0 ? `Payable: ₹${item.balance.toFixed(2)}` : "Clear ✓"}
+                  </Text>
                 </View>
-                <Text style={[styles.balance, { color: item.balance > 0 ? "#e53935" : "#43a047" }]}>
-                  {item.balance > 0 ? `Owe ₹${item.balance.toFixed(2)}` : "Clear ✓"}
-                </Text>
+                <View style={styles.rightActionsRow}>
+                  <IconButton
+                    icon="pencil"
+                    size={20}
+                    iconColor="#0e6655"
+                    onPress={() => openEditLabModal(item)}
+                    style={styles.actionButton}
+                  />
+                  <IconButton
+                    icon="delete"
+                    size={20}
+                    iconColor="#d32f2f"
+                    onPress={() => handleDeleteLab(item._id)}
+                    style={styles.actionButton}
+                  />
+                </View>
               </Card.Content>
             </Card>
           )}
@@ -217,7 +274,7 @@ export default function ManageLabsAndTests() {
       <Portal>
         <Modal visible={visible} onDismiss={() => setVisible(false)} contentContainerStyle={styles.modal}>
           <Text style={styles.modalTitle}>
-            {activeTab === "labs" ? "Add New Lab" : editingTest ? "Edit Test" : "Add New Test"}
+            {activeTab === "labs" ? (editingLab ? "Edit Lab" : "Add New Lab") : (editingTest ? "Edit Test" : "Add New Test")}
           </Text>
           <TextInput label="Name" value={name} onChangeText={setName} mode="outlined" style={styles.input} />
 
@@ -269,7 +326,7 @@ export default function ManageLabsAndTests() {
           )}
 
           <Button mode="contained" onPress={handleAdd} loading={saving} disabled={saving} style={{ marginTop: 12 }}>
-            {activeTab === "labs" ? "Add Lab" : editingTest ? "Save Changes" : "Add Test"}
+            {activeTab === "labs" ? (editingLab ? "Save Changes" : "Add Lab") : (editingTest ? "Save Changes" : "Add Test")}
           </Button>
           <Button mode="text" onPress={() => setVisible(false)}>
             Cancel
@@ -282,6 +339,7 @@ export default function ManageLabsAndTests() {
         style={styles.fab}
         onPress={openAddModal}
         label={activeTab === "labs" ? "Add Lab" : "Add Test"}
+        color="#fff"
       />
       <Snackbar visible={!!snack} onDismiss={() => setSnack("")} duration={3000}>
         {snack}
@@ -308,7 +366,7 @@ const styles = StyleSheet.create({
   balance: { fontWeight: "700", fontSize: 14 },
   price: { fontSize: 16, fontWeight: "700", color: "#1e88e5" },
   empty: { textAlign: "center", color: "#9e9e9e", marginTop: 40, fontSize: 15 },
-  fab: { position: "absolute", right: 16, bottom: 24, backgroundColor: "#6200ee" },
+  fab: { position: "absolute", right: 16, bottom: 24, backgroundColor: "#0e6655" },
   modal: { backgroundColor: "#fff", margin: 24, borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, color: "#212121" },
   input: { marginBottom: 12 },

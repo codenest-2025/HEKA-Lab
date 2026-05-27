@@ -107,4 +107,47 @@ const deleteTest = async (req, res) => {
   }
 };
 
-module.exports = { getLabs, createLab, getTests, createTest, updateTest, deleteTest };
+// @desc    Update a lab
+// @route   PUT /api/labs/:id
+// @access  Private Admin
+const updateLab = async (req, res) => {
+  const { name, labPercentage } = req.body;
+  try {
+    const lab = await Lab.findById(req.params.id);
+    if (!lab) {
+      return res.status(404).json({ message: "Lab not found" });
+    }
+    if (name && name !== lab.name) {
+      const nameExists = await Lab.findOne({ name });
+      if (nameExists) {
+        return res.status(400).json({ message: "Lab name already exists" });
+      }
+      lab.name = name;
+    }
+    if (labPercentage !== undefined) {
+      lab.labPercentage = parseFloat(labPercentage);
+    }
+    await lab.save();
+    res.json(lab);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a lab
+// @route   DELETE /api/labs/:id
+// @access  Private Admin
+const deleteLab = async (req, res) => {
+  try {
+    const lab = await Lab.findById(req.params.id);
+    if (!lab) {
+      return res.status(404).json({ message: "Lab not found" });
+    }
+    await lab.deleteOne();
+    res.json({ message: "Lab removed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getLabs, createLab, getTests, createTest, updateTest, deleteTest, updateLab, deleteLab };

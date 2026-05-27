@@ -1,5 +1,5 @@
 const express = require("express");
-const { getLabs, createLab, getTests, createTest, updateTest, deleteTest } = require("../controllers/labController");
+const { getLabs, createLab, getTests, createTest, updateTest, deleteTest, updateLab, deleteLab } = require("../controllers/labController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -15,5 +15,9 @@ router.route("/tests")
 router.route("/tests/:id")
   .put(protect, authorize("admin"), updateTest)
   .delete(protect, authorize("admin"), deleteTest);
+
+router.route("/:id")
+  .put(protect, authorize("admin"), updateLab)
+  .delete(protect, authorize("admin"), deleteLab);
 
 module.exports = router;

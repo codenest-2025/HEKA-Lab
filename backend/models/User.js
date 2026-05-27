@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ["admin", "staff", "agent"], required: true },
     agentPercentage: { type: Number, default: 0 }, // For Agent role
     center: { type: mongoose.Schema.Types.ObjectId, ref: "Center" }, // For Staff role
-    balance: { type: Number, default: 0 } // Dues tracker: positive = admin owes agent, negative = agent owes admin
+    balance: { type: Number, default: 0 }, // Dues tracker: positive = admin owes agent, negative = agent owes admin
+    status: { type: String, enum: ["active", "inactive"], default: "active" }
   },
   { timestamps: true }
 );

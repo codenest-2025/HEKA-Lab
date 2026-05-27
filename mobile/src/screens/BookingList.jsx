@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 12, color: "#9e9e9e" },
   testRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   testName: { flex: 1, fontSize: 13, color: "#424242" },
-  testPrice: { fontSize: 13, fontWeight: "600", color: "#6200ee" },
+  testPrice: { fontSize: 13, fontWeight: "600", color: "#0e6655" },
   infoRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
   infoLabel: { flex: 1, fontSize: 13, color: "#757575" },
   infoValue: { fontSize: 13, fontWeight: "600", color: "#212121" },

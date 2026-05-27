@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import {
   Text, FAB, Portal, Modal, TextInput, Button, Card,
-  Snackbar, ActivityIndicator, Chip, Menu, SegmentedButtons
+  Snackbar, ActivityIndicator, Chip, Menu, SegmentedButtons, IconButton
 } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import API from "../utils/api";
@@ -25,6 +25,9 @@ export default function ManagePeople() {
   const [password, setPassword] = useState("");
   const [percentage, setPercentage] = useState(""); // Only for Agent
   const [selectedCenter, setSelectedCenter] = useState(null); // For Agent & Staff
+
+  // Edit state
+  const [editingUser, setEditingUser] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [snack, setSnack] = useState("");
@@ -50,14 +53,68 @@ export default function ManagePeople() {
     loadData();
   }, [loadData]);
 
+  const openAddModal = () => {
+    setEditingUser(null);
+    setName("");
+    setUsername("");
+    setPassword("");
+    setPercentage("");
+    setSelectedCenter(null);
+    setVisible(true);
+  };
+
+  const openEditModal = (user) => {
+    setEditingUser(user);
+    setName(user.name);
+    setUsername(user.username);
+    setPassword("");
+    setPercentage(user.agentPercentage ? user.agentPercentage.toString() : "");
+    setSelectedCenter(user.center);
+    setVisible(true);
+  };
+
+  const handleDeleteUser = (userId) => {
+    Alert.alert(
+      "Delete User",
+      "Are you sure you want to delete this user?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await API.delete(`/auth/users/${userId}`);
+              setSnack("User deleted successfully!");
+              loadData();
+            } catch (e) {
+              setSnack(e.response?.data?.message || "Error deleting user");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "inactive" ? "active" : "inactive";
+    try {
+      await API.put(`/auth/users/${user._id}`, { status: newStatus });
+      setSnack(`User status updated to ${newStatus}!`);
+      loadData();
+    } catch (e) {
+      setSnack(e.response?.data?.message || "Error updating status");
+    }
+  };
+
   const handleAdd = async () => {
     if (activeTab === "agents") {
-      if (!name || !username || !password || !percentage || !selectedCenter) {
+      if (!name || !username || (!editingUser && !password) || !percentage || !selectedCenter) {
         setSnack("Fill all fields");
         return;
       }
     } else {
-      if (!name || !username || !password || !selectedCenter) {
+      if (!name || !username || (!editingUser && !password) || !selectedCenter) {
         setSnack("Fill all fields");
         return;
       }
@@ -65,24 +122,36 @@ export default function ManagePeople() {
 
     setSaving(true);
     try {
-      await API.post("/auth/register", {
-        name,
-        username,
-        password,
-        role: activeTab === "agents" ? "agent" : "staff",
-        agentPercentage: activeTab === "agents" ? parseFloat(percentage) : 0,
-        centerId: selectedCenter._id
-      });
+      if (editingUser) {
+        await API.put(`/auth/users/${editingUser._id}`, {
+          name,
+          username,
+          ...(password ? { password } : {}),
+          agentPercentage: activeTab === "agents" ? parseFloat(percentage) : 0,
+          centerId: selectedCenter._id
+        });
+        setSnack(activeTab === "agents" ? "Agent updated!" : "Staff updated!");
+      } else {
+        await API.post("/auth/register", {
+          name,
+          username,
+          password,
+          role: activeTab === "agents" ? "agent" : "staff",
+          agentPercentage: activeTab === "agents" ? parseFloat(percentage) : 0,
+          centerId: selectedCenter._id
+        });
+        setSnack(activeTab === "agents" ? "Agent added!" : "Staff member added!");
+      }
       setVisible(false);
       setName("");
       setUsername("");
       setPassword("");
       setPercentage("");
       setSelectedCenter(null);
+      setEditingUser(null);
       loadData();
-      setSnack(activeTab === "agents" ? "Agent added!" : "Staff member added!");
     } catch (e) {
-      setSnack(e.response?.data?.message || "Error adding user");
+      setSnack(e.response?.data?.message || "Error saving user");
     } finally {
       setSaving(false);
     }
@@ -118,9 +187,9 @@ export default function ManagePeople() {
               <Card.Content>
                 <View style={styles.row}>
                   <View style={styles.rowLeft}>
-                    <Icon name="account-tie" size={22} color="#6200ee" />
+                    <Icon name="account-tie" size={22} color={item.status === "inactive" ? "#9e9e9e" : "#6200ee"} />
                     <View style={{ marginLeft: 10, flex: 1 }}>
-                      <Text style={styles.name}>{item.name}</Text>
+                      <Text style={[styles.name, item.status === "inactive" && styles.inactiveText]}>{item.name}</Text>
                       <Text style={styles.sub}>@{item.username} · {item.agentPercentage}% commission</Text>
                       {item.center && (
                         <View style={styles.centerChip}>
@@ -130,12 +199,37 @@ export default function ManagePeople() {
                       )}
                     </View>
                   </View>
-                  <Chip
-                    textStyle={{ color: balanceColor(item.balance), fontWeight: "700" }}
-                    style={{ backgroundColor: balanceColor(item.balance) + "22" }}
-                  >
-                    {balanceLabel(item.balance)}
-                  </Chip>
+                  <View style={{ alignItems: "flex-end", gap: 4 }}>
+                    <Chip
+                      textStyle={{ color: balanceColor(item.balance), fontWeight: "700" }}
+                      style={{ backgroundColor: balanceColor(item.balance) + "22" }}
+                    >
+                      {balanceLabel(item.balance)}
+                    </Chip>
+                    <View style={styles.actionsRow}>
+                      <IconButton
+                        icon={item.status === "inactive" ? "account-off-outline" : "account-check-outline"}
+                        size={18}
+                        iconColor={item.status === "inactive" ? "#d32f2f" : "#43a047"}
+                        onPress={() => handleToggleStatus(item)}
+                        style={styles.actionButton}
+                      />
+                      <IconButton
+                        icon="pencil"
+                        size={18}
+                        iconColor="#0e6655"
+                        onPress={() => openEditModal(item)}
+                        style={styles.actionButton}
+                      />
+                      <IconButton
+                        icon="delete"
+                        size={18}
+                        iconColor="#d32f2f"
+                        onPress={() => handleDeleteUser(item._id)}
+                        style={styles.actionButton}
+                      />
+                    </View>
+                  </View>
                 </View>
               </Card.Content>
             </Card>
@@ -150,17 +244,40 @@ export default function ManagePeople() {
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <Card.Content style={styles.row}>
-                <Icon name="account" size={22} color="#43a047" />
+                <Icon name="account" size={22} color={item.status === "inactive" ? "#9e9e9e" : "#43a047"} />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={[styles.name, item.status === "inactive" && styles.inactiveText]}>{item.name}</Text>
                   <Text style={styles.sub}>@{item.username}</Text>
+                  {item.center && (
+                    <View style={styles.centerChip}>
+                      <Icon name="hospital-building" size={12} color="#1e88e5" />
+                      <Text style={styles.centerText}>{item.center.name}</Text>
+                    </View>
+                  )}
                 </View>
-                {item.center && (
-                  <View style={styles.centerChip}>
-                    <Icon name="hospital-building" size={12} color="#1e88e5" />
-                    <Text style={styles.centerText}>{item.center.name}</Text>
-                  </View>
-                )}
+                <View style={styles.actionsRow}>
+                  <IconButton
+                    icon={item.status === "inactive" ? "account-off-outline" : "account-check-outline"}
+                    size={18}
+                    iconColor={item.status === "inactive" ? "#d32f2f" : "#43a047"}
+                    onPress={() => handleToggleStatus(item)}
+                    style={styles.actionButton}
+                  />
+                  <IconButton
+                    icon="pencil"
+                    size={18}
+                    iconColor="#0e6655"
+                    onPress={() => openEditModal(item)}
+                    style={styles.actionButton}
+                  />
+                  <IconButton
+                    icon="delete"
+                    size={18}
+                    iconColor="#d32f2f"
+                    onPress={() => handleDeleteUser(item._id)}
+                    style={styles.actionButton}
+                  />
+                </View>
               </Card.Content>
             </Card>
           )}
@@ -171,12 +288,12 @@ export default function ManagePeople() {
       <Portal>
         <Modal visible={visible} onDismiss={() => setVisible(false)} contentContainerStyle={styles.modal}>
           <Text style={styles.modalTitle}>
-            {activeTab === "agents" ? "Add New Agent" : "Add New Staff"}
+            {activeTab === "agents" ? (editingUser ? "Edit Agent" : "Add New Agent") : (editingUser ? "Edit Staff" : "Add New Staff")}
           </Text>
           <TextInput label="Full Name" value={name} onChangeText={setName} mode="outlined" style={styles.input} />
           <TextInput label="Username" value={username} onChangeText={setUsername} mode="outlined" autoCapitalize="none" style={styles.input} />
-          <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" style={styles.input} />
-          
+          <TextInput label="Password (leave blank to keep current)" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" style={styles.input} />
+
           {activeTab === "agents" && (
             <TextInput
               label="Commission %"
@@ -215,7 +332,7 @@ export default function ManagePeople() {
           </Menu>
 
           <Button mode="contained" onPress={handleAdd} loading={saving} disabled={saving} style={{ marginTop: 12 }}>
-            {activeTab === "agents" ? "Add Agent" : "Add Staff"}
+            {activeTab === "agents" ? (editingUser ? "Save Changes" : "Add Agent") : (editingUser ? "Save Changes" : "Add Staff")}
           </Button>
           <Button mode="text" onPress={() => setVisible(false)}>
             Cancel
@@ -226,8 +343,9 @@ export default function ManagePeople() {
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => setVisible(true)}
+        onPress={openAddModal}
         label={activeTab === "agents" ? "Add Agent" : "Add Staff"}
+        color="#fff"
       />
       <Snackbar visible={!!snack} onDismiss={() => setSnack("")} duration={3000}>
         {snack}
@@ -252,6 +370,7 @@ const styles = StyleSheet.create({
   rowLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   name: { fontSize: 15, fontWeight: "600", color: "#212121" },
   sub: { fontSize: 12, color: "#757575", marginTop: 2 },
+  inactiveText: { textDecorationLine: "line-through", color: "#9e9e9e" },
   centerChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -265,8 +384,10 @@ const styles = StyleSheet.create({
   },
   centerText: { fontSize: 11, color: "#1e88e5", fontWeight: "600" },
   empty: { textAlign: "center", color: "#9e9e9e", marginTop: 40, fontSize: 15 },
-  fab: { position: "absolute", right: 16, bottom: 24, backgroundColor: "#6200ee" },
+  fab: { position: "absolute", right: 16, bottom: 24, backgroundColor: "#0e6655" },
   modal: { backgroundColor: "#fff", margin: 24, borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, color: "#212121" },
-  input: { marginBottom: 12 }
+  input: { marginBottom: 12 },
+  actionsRow: { flexDirection: "row", alignItems: "center", gap: 0, marginTop: 4 },
+  actionButton: { margin: 0, padding: 0 }
 });
