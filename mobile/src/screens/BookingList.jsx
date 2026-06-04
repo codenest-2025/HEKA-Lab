@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
-import { Text, Card, Chip, ActivityIndicator, Snackbar, Divider } from "react-native-paper";
+import { View, FlatList, StyleSheet, RefreshControl, Platform } from "react-native";
+import { Text, Card, Chip, ActivityIndicator, Snackbar, Divider, Searchbar, Button } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import API from "../utils/api";
@@ -17,22 +18,37 @@ function InfoRow({ icon, label, value, color }) {
 }
 
 export default function BookingList() {
-  const { user } = useAuth();
+  const { user, selectedCenter, refreshTick } = useAuth();
   const socket = useSocket();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [snack, setSnack] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDate, setFilterDate] = useState(new Date());
+  const [isDateFilterActive, setIsDateFilterActive] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const loadBookings = useCallback(async () => {
     try {
-      const res = await API.get("/bookings");
+      let url = `/bookings?`;
+      if (selectedCenter) {
+        url += `centerId=${selectedCenter._id}&`;
+      }
+      if (searchQuery.trim()) {
+        url += `search=${encodeURIComponent(searchQuery.trim())}&`;
+      }
+      if (isDateFilterActive) {
+        const formattedDate = filterDate.toISOString().split("T")[0];
+        url += `date=${formattedDate}&`;
+      }
+      const res = await API.get(url);
       setBookings(res.data);
     } catch { setSnack("Failed to load bookings"); }
     finally { setLoading(false); setRefreshing(false); }
-  }, []);
+  }, [selectedCenter, searchQuery, filterDate, isDateFilterActive]);
 
-  useEffect(() => { loadBookings(); }, [loadBookings]);
+  useEffect(() => { loadBookings(); }, [loadBookings, refreshTick]);
 
   useEffect(() => {
     if (!socket) return;
@@ -51,6 +67,25 @@ export default function BookingList() {
   }, [socket, loadBookings]);
 
   const onRefresh = () => { setRefreshing(true); loadBookings(); };
+
+  const toggleReportStatus = async (bookingId, currentVal) => {
+    try {
+      await API.patch(`/bookings/${bookingId}/report-status`, {
+        giveReportToPatient: !currentVal
+      });
+      setSnack("Report status updated!");
+    } catch {
+      setSnack("Failed to update report status");
+    }
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setFilterDate(selectedDate);
+      setIsDateFilterActive(true);
+    }
+  };
 
   const modeColor = (m) => m === "Cash" ? "#43a047" : "#1e88e5";
   const collectorColor = (c) => c === "Staff" ? "#9c27b0" : "#ff9800";
@@ -98,6 +133,19 @@ export default function BookingList() {
             style={{ backgroundColor: modeColor(item.paymentMode) + "22" }}>
             {item.paymentMode}
           </Chip>
+          <Chip
+            compact
+            icon={item.giveReportToPatient ? "check-circle" : "close-circle"}
+            textStyle={{ fontSize: 11, color: item.giveReportToPatient ? "#2e7d32" : "#c62828" }}
+            style={{ backgroundColor: item.giveReportToPatient ? "#e8f5e9" : "#ffebee" }}
+            onPress={
+              (user?.role === "staff" || user?.role === "admin")
+                ? () => toggleReportStatus(item._id, item.giveReportToPatient)
+                : undefined
+            }
+          >
+            {item.giveReportToPatient ? "Give Report" : "Don't Give"}
+          </Chip>
           {user?.role !== "staff" && item.agents?.map((agentItem) => (
             <Chip compact icon="account-tie" textStyle={{ fontSize: 11, color: "#ff9800" }}
               key={agentItem.agent?._id || agentItem.agent || agentItem.name}
@@ -112,7 +160,50 @@ export default function BookingList() {
 
   return (
     <View style={styles.container}>
-      {loading ? (
+      <View style={styles.searchSection}>
+        <Searchbar
+          placeholder="Search patient name..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+          inputStyle={styles.searchInput}
+        />
+        <View style={styles.dateSelectorRow}>
+          <Button
+            mode="outlined"
+            icon="calendar"
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateBtn}
+            textColor="#0e6655"
+          >
+            {isDateFilterActive
+              ? filterDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+              : "Select Date"}
+          </Button>
+
+          {isDateFilterActive && (
+            <Button
+              mode="text"
+              icon="calendar-remove"
+              onPress={() => setIsDateFilterActive(false)}
+              textColor="#c62828"
+            >
+              Clear
+            </Button>
+          )}
+        </View>
+      </View>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={filterDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleDateChange}
+        />
+      )}
+
+      {loading && bookings.length === 0 ? (
         <ActivityIndicator animating size="large" style={{ marginTop: 60 }} />
       ) : (
         <FlatList
@@ -124,8 +215,7 @@ export default function BookingList() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon name="clipboard-text-off-outline" size={56} color="#bdbdbd" />
-              <Text style={styles.emptyText}>No bookings yet.</Text>
-              <Text style={styles.emptySub}>Create your first booking from the New Booking tab.</Text>
+              <Text style={styles.emptyText}>No bookings found.</Text>
             </View>
           }
         />
@@ -137,6 +227,11 @@ export default function BookingList() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f6f8" },
+  searchSection: { padding: 16, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#e0e0e0" },
+  searchBar: { elevation: 0, backgroundColor: "#f4f6f8", borderRadius: 10, height: 44 },
+  searchInput: { fontSize: 14, minHeight: 44 },
+  dateSelectorRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
+  dateBtn: { borderColor: "#0e6655", flex: 1, marginRight: 8 },
 
   card: { borderRadius: 14, backgroundColor: "#fff" },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },

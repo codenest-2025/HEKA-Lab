@@ -80,6 +80,14 @@ const settleSpecificBookingForAgent = async (bookingId, agentId, amount) => {
   }
 
   const payerDue = Math.max(booking.totalPrice - payerSnapshot.commission, 0);
+  const paidByDifferentAgent = booking.adminSettlementPaidBy
+    && booking.adminSettlementPaidBy.toString() !== agentId.toString()
+    && (booking.adminSettlementPaidAmount || 0) > 0;
+
+  if (paidByDifferentAgent) {
+    throw new Error("This booking has already been partially settled by another agent");
+  }
+
   const paidSoFar = booking.adminSettlementPaidAmount || 0;
   const dueRemaining = Math.max(payerDue - paidSoFar, 0);
 
@@ -206,11 +214,24 @@ const recordPayment = async (req, res) => {
 // @access  Private Admin
 const getFinancialSummary = async (req, res) => {
   try {
-    const centers = await Center.find({});
-    const agents = await User.find({ role: "agent" });
+    const { centerId } = req.query;
+
+    const centerFilter = centerId ? { _id: centerId } : {};
+    const agentFilter = centerId ? { role: "agent", center: centerId } : { role: "agent" };
+    const bookingFilter = centerId ? { center: centerId } : {};
+
+    const centers = await Center.find(centerFilter);
+    const agents = await User.find(agentFilter);
     const labs = await Lab.find({});
-    const bookings = await Booking.find({});
-    const payments = await Payment.find({});
+    const bookings = await Booking.find(bookingFilter);
+
+    let paymentFilter = {};
+    if (centerId) {
+      const centerAgents = await User.find({ center: centerId, role: "agent" });
+      const agentIds = centerAgents.map((a) => a._id);
+      paymentFilter = { agent: { $in: agentIds } };
+    }
+    const payments = await Payment.find(paymentFilter);
 
     const centerData = [];
     let totalFromCenters = 0;

@@ -1,5 +1,5 @@
 const express = require("express");
-const { createPatient, getPatients, createBooking, getBookings } = require("../controllers/bookingController");
+const { createPatient, getPatients, createBooking, getBookings, updateBookingReportStatus } = require("../controllers/bookingController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -13,5 +13,8 @@ router.route("/")
 router.route("/patients")
   .post(createPatient)
   .get(getPatients);
+
+router.route("/:id/report-status")
+  .patch(updateBookingReportStatus);
 
 module.exports = router;

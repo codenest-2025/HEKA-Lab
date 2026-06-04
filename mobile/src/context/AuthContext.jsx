@@ -46,6 +46,27 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const [selectedCenter, setSelectedCenter] = useState(null);
+  const [centers, setCenters] = useState([]);
+
+  const fetchCenters = async () => {
+    try {
+      const res = await API.get("/centers");
+      setCenters(res.data);
+    } catch (e) {
+      console.error("Failed to fetch centers in AuthContext:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === "admin") {
+      fetchCenters();
+    } else {
+      setCenters([]);
+      setSelectedCenter(null);
+    }
+  }, [user]);
+
   const login = async (username, password) => {
     try {
       const response = await API.post("/auth/login", { username, password });
@@ -75,9 +96,17 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.removeItem("token");
       await AsyncStorage.removeItem("user");
       setUser(null);
+      setSelectedCenter(null);
+      setCenters([]);
     } catch (e) {
       console.error("Logout error:", e);
     }
+  };
+
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  const triggerRefresh = () => {
+    setRefreshTick((prev) => prev + 1);
   };
 
   const refreshProfile = async () => {
@@ -95,7 +124,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, booting, login, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, booting, login, logout, refreshProfile, selectedCenter, setSelectedCenter, centers, fetchCenters, refreshTick, triggerRefresh }}>
       {children}
     </AuthContext.Provider>
   );

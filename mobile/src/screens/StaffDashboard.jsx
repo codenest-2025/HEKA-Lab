@@ -10,6 +10,7 @@ export default function StaffDashboard({ navigation }) {
 
   const actions = [
     { label: "New Booking", sub: "Register patient & select tests", icon: "plus-circle-outline", color: "#0e6655", bg: "#e0f2f1", screen: "New Booking" },
+    { label: "Give Report", sub: "Search patient & handover report", icon: "file-document-outline", color: "#9c27b0", bg: "#f3e5f5", screen: "GiveReport" },
     { label: "Booking History", sub: "View bookings at your center", icon: "history", color: "#1e88e5", bg: "#e3f2fd", screen: "History" },
   ];
 

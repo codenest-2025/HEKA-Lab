@@ -21,6 +21,7 @@ import StaffDashboard from "../screens/StaffDashboard";
 import NewBooking from "../screens/NewBooking";
 import BookingList from "../screens/BookingList";
 import ManagePatients from "../screens/ManagePatients";
+import GiveReport from "../screens/GiveReport";
 
 // Agent Screens
 import AgentDashboard from "../screens/AgentDashboard";
@@ -52,6 +53,7 @@ function AdminTabs() {
             Centers: "hospital-building",
             People: "account-group",
             Finance: "cash-multiple",
+            History: "history",
           };
           return <Icon name={icons[route.name] || "circle"} size={size} color={color} />;
         },
@@ -63,6 +65,7 @@ function AdminTabs() {
       <Tab.Screen name="Centers" component={AdminCenterStack} options={{ headerShown: false }} />
       <Tab.Screen name="People" component={AdminPeopleStack} options={{ headerShown: false }} />
       <Tab.Screen name="Finance" component={SettlePayments} options={withAppHeader("Financial Settlements")} />
+      <Tab.Screen name="History" component={BookingList} options={withAppHeader("Booking History")} />
     </Tab.Navigator>
   );
 }
@@ -132,12 +135,36 @@ function StaffTabs() {
   );
 }
 
-function AgentStack() {
+function StaffStack() {
   return (
     <Stack.Navigator>
-      {/* Agent dashboard has its own premium header */}
-      <Stack.Screen name="AgentDashboard" component={AgentDashboard} options={{ headerShown: false }} />
+      <Stack.Screen name="StaffTabs" component={StaffTabs} options={{ headerShown: false }} />
+      <Stack.Screen name="GiveReport" component={GiveReport} options={withAppHeader("Give Report")} />
     </Stack.Navigator>
+  );
+}
+
+function AgentTabs() {
+  const theme = useTheme();
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: "#9e9e9e",
+        tabBarStyle: { backgroundColor: "#ffffff", borderTopColor: "#e0e0e0", paddingBottom: 4 },
+        tabBarIcon: ({ color, size }) => {
+          const icons = {
+            Home: "view-dashboard",
+            History: "history",
+          };
+          return <Icon name={icons[route.name] || "circle"} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Home" component={AgentDashboard} options={{ headerShown: false }} />
+      <Tab.Screen name="History" component={BookingList} options={withAppHeader("Booking History")} />
+    </Tab.Navigator>
   );
 }
 
@@ -148,9 +175,9 @@ export default function RoleNavigator() {
       {user?.role === "admin" ? (
         <AdminTabs />
       ) : user?.role === "agent" ? (
-        <AgentStack />
+        <AgentTabs />
       ) : (
-        <StaffTabs />
+        <StaffStack />
       )}
     </NavigationContainer>
   );

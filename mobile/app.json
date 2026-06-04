@@ -1,9 +1,20 @@
 {
   "expo": {
-    "name": "Lab Commission",
-    "slug": "lab-commission-mobile",
+    "name": "Heka Lab",
+    "slug": "heka-lab-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light"
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.hekalab.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

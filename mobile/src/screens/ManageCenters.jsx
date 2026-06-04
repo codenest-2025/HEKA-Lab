@@ -2,9 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import { View, FlatList, StyleSheet, Alert } from "react-native";
 import { Text, FAB, Portal, Modal, TextInput, Button, Card, Snackbar, ActivityIndicator, IconButton } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
 export default function ManageCenters() {
+  const { refreshTick } = useAuth();
   const [centers, setCenters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
@@ -25,7 +27,7 @@ export default function ManageCenters() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadCenters(); }, [loadCenters]);
+  useEffect(() => { loadCenters(); }, [loadCenters, refreshTick]);
 
   const openAddModal = () => {
     setEditingCenter(null);

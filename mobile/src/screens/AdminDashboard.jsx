@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from "react-native";
-import { Text, Surface, Card, ActivityIndicator, Snackbar, Chip } from "react-native-paper";
+import { Text, Surface, Card, ActivityIndicator, Snackbar, Chip, Menu } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../context/AuthContext";
@@ -24,16 +24,17 @@ function MetricCard({ icon, label, amount, color, iconBg }) {
 }
 
 export default function AdminDashboard({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, logout, selectedCenter, setSelectedCenter, centers } = useAuth();
   const socket = useSocket();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [snack, setSnack] = useState("");
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const loadSummary = useCallback(async () => {
     try {
-      const res = await API.get("/payments/summary");
+      const res = await API.get(`/payments/summary${selectedCenter ? `?centerId=${selectedCenter._id}` : ""}`);
       setSummary(res.data);
     } catch (e) {
       setSnack("Failed to load summary");
@@ -41,7 +42,7 @@ export default function AdminDashboard({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedCenter]);
 
   useEffect(() => {
     loadSummary();
@@ -85,6 +86,37 @@ export default function AdminDashboard({ navigation }) {
         <View style={styles.headerInfo}>
           <Text style={styles.title}>Dashboard</Text>
           <Text style={styles.welcome}>Welcome back, {user?.name || "Admin"}</Text>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <TouchableOpacity style={styles.centerSelect} onPress={() => setMenuVisible(true)}>
+                <Icon name="hospital-building" size={14} color="#a3e4d7" />
+                <Text style={styles.centerSelectText} numberOfLines={1}>
+                  {selectedCenter ? selectedCenter.name : "All Centers"}
+                </Text>
+                <Icon name="chevron-down" size={14} color="#a3e4d7" />
+              </TouchableOpacity>
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setSelectedCenter(null);
+                setMenuVisible(false);
+              }}
+              title="All Centers"
+            />
+            {centers.map((c) => (
+              <Menu.Item
+                key={c._id}
+                onPress={() => {
+                  setSelectedCenter(c);
+                  setMenuVisible(false);
+                }}
+                title={c.name}
+              />
+            ))}
+          </Menu>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.circleActionBtn} onPress={onRefresh}>
@@ -274,6 +306,22 @@ const styles = StyleSheet.create({
     elevation: 4
   },
   headerInfo: { flex: 1 },
+  centerSelect: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 8,
+    alignSelf: "flex-start",
+  },
+  centerSelectText: {
+    color: "#a3e4d7",
+    fontSize: 12,
+    fontWeight: "600",
+  },
   title: { color: "#fff", fontSize: 28, fontWeight: "bold", letterSpacing: 0.5 },
   welcome: { color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 4 },
   headerActions: { flexDirection: "row", alignItems: "center" },

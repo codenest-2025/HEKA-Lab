@@ -32,7 +32,8 @@ const bookingSchema = new mongoose.Schema(
     adminSettledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     adminSettledAt: { type: Date },
     payment: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
-    status: { type: String, enum: ["Pending", "Completed"], default: "Completed" }
+    status: { type: String, enum: ["Pending", "Completed"], default: "Completed" },
+    giveReportToPatient: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

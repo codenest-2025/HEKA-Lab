@@ -39,7 +39,7 @@ const getPatients = async (req, res) => {
 // @route   POST /api/bookings
 // @access  Private (Staff/Admin)
 const createBooking = async (req, res) => {
-  const { patientId, testIds, paymentMode } = req.body;
+  const { patientId, testIds, paymentMode, giveReportToPatient } = req.body;
 
   try {
     // 1. Fetch Patient
@@ -129,7 +129,8 @@ const createBooking = async (req, res) => {
       totalAgentCommission,
       labShare: totalLabShare,
       paymentMode,
-      paymentCollectedBy: "Staff"
+      paymentCollectedBy: "Staff",
+      giveReportToPatient: !!giveReportToPatient
     });
 
     if (req.io) {
@@ -153,7 +154,28 @@ const getBookings = async (req, res) => {
       query.center = req.user.center;
     } else if (req.user.role === "agent") {
       query["agents.agent"] = req.user._id;
+    } else if (req.query.centerId) {
+      query.center = req.query.centerId;
     }
+
+    // Backend Search by Patient Name
+    if (req.query.search) {
+      const matchingPatients = await Patient.find({
+        name: { $regex: req.query.search, $options: "i" }
+      });
+      const patientIds = matchingPatients.map(p => p._id);
+      query.patient = { $in: patientIds };
+    }
+
+    // Backend Filter by Date (YYYY-MM-DD)
+    if (req.query.date) {
+      const startOfDay = new Date(req.query.date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(req.query.date);
+      endOfDay.setHours(23, 59, 59, 999);
+      query.createdAt = { $gte: startOfDay, $lte: endOfDay };
+    }
+
     const bookings = await Booking.find(query)
       .populate("patient")
       .populate("center")
@@ -168,4 +190,26 @@ const getBookings = async (req, res) => {
   }
 };
 
-module.exports = { createPatient, getPatients, createBooking, getBookings };
+// @desc    Update booking report status
+// @route   PATCH /api/bookings/:id/report-status
+// @access  Private (Staff/Admin)
+const updateBookingReportStatus = async (req, res) => {
+  const { giveReportToPatient } = req.body;
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    booking.giveReportToPatient = !!giveReportToPatient;
+    await booking.save();
+
+    if (req.io) {
+      req.io.emit("bookingUpdated", booking);
+    }
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createPatient, getPatients, createBooking, getBookings, updateBookingReportStatus };

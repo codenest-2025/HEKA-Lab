@@ -5,9 +5,11 @@ import {
   Snackbar, ActivityIndicator, Menu, SegmentedButtons, IconButton
 } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
 export default function ManageLabsAndTests() {
+  const { refreshTick } = useAuth();
   const [activeTab, setActiveTab] = useState("labs"); // "labs" or "tests"
 
   // Lists
@@ -48,7 +50,7 @@ export default function ManageLabsAndTests() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, refreshTick]);
 
   const openAddModal = () => {
     setEditingTest(null);

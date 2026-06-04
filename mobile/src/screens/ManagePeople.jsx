@@ -5,9 +5,11 @@ import {
   Snackbar, ActivityIndicator, Chip, Menu, SegmentedButtons, IconButton
 } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
 export default function ManagePeople() {
+  const { selectedCenter, refreshTick } = useAuth();
   const [activeTab, setActiveTab] = useState("agents"); // "agents" or "staff"
 
   // Lists
@@ -24,7 +26,7 @@ export default function ManagePeople() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [percentage, setPercentage] = useState(""); // Only for Agent
-  const [selectedCenter, setSelectedCenter] = useState(null); // For Agent & Staff
+  const [selectedCenterField, setSelectedCenterField] = useState(null); // For Agent & Staff
 
   // Edit state
   const [editingUser, setEditingUser] = useState(null);
@@ -51,7 +53,7 @@ export default function ManagePeople() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, refreshTick]);
 
   const openAddModal = () => {
     setEditingUser(null);
@@ -59,7 +61,7 @@ export default function ManagePeople() {
     setUsername("");
     setPassword("");
     setPercentage("");
-    setSelectedCenter(null);
+    setSelectedCenterField(null);
     setVisible(true);
   };
 
@@ -69,7 +71,7 @@ export default function ManagePeople() {
     setUsername(user.username);
     setPassword("");
     setPercentage(user.agentPercentage ? user.agentPercentage.toString() : "");
-    setSelectedCenter(user.center);
+    setSelectedCenterField(user.center);
     setVisible(true);
   };
 
@@ -109,12 +111,12 @@ export default function ManagePeople() {
 
   const handleAdd = async () => {
     if (activeTab === "agents") {
-      if (!name || !username || (!editingUser && !password) || !percentage || !selectedCenter) {
+      if (!name || !username || (!editingUser && !password) || !percentage || !selectedCenterField) {
         setSnack("Fill all fields");
         return;
       }
     } else {
-      if (!name || !username || (!editingUser && !password) || !selectedCenter) {
+      if (!name || !username || (!editingUser && !password) || !selectedCenterField) {
         setSnack("Fill all fields");
         return;
       }
@@ -128,7 +130,7 @@ export default function ManagePeople() {
           username,
           ...(password ? { password } : {}),
           agentPercentage: activeTab === "agents" ? parseFloat(percentage) : 0,
-          centerId: selectedCenter._id
+          centerId: selectedCenterField._id
         });
         setSnack(activeTab === "agents" ? "Agent updated!" : "Staff updated!");
       } else {
@@ -138,7 +140,7 @@ export default function ManagePeople() {
           password,
           role: activeTab === "agents" ? "agent" : "staff",
           agentPercentage: activeTab === "agents" ? parseFloat(percentage) : 0,
-          centerId: selectedCenter._id
+          centerId: selectedCenterField._id
         });
         setSnack(activeTab === "agents" ? "Agent added!" : "Staff member added!");
       }
@@ -147,7 +149,7 @@ export default function ManagePeople() {
       setUsername("");
       setPassword("");
       setPercentage("");
-      setSelectedCenter(null);
+      setSelectedCenterField(null);
       setEditingUser(null);
       loadData();
     } catch (e) {
@@ -159,6 +161,14 @@ export default function ManagePeople() {
 
   const balanceColor = (b) => (b < 0 ? "#e53935" : b > 0 ? "#43a047" : "#757575");
   const balanceLabel = (b) => (b < 0 ? `Owes ₹${Math.abs(b).toFixed(2)}` : b > 0 ? `Due ₹${b.toFixed(2)}` : "Clear ✓");
+
+  const filteredAgents = selectedCenter
+    ? agents.filter((a) => a.center && (a.center._id === selectedCenter._id || a.center === selectedCenter._id))
+    : agents;
+
+  const filteredStaff = selectedCenter
+    ? staff.filter((s) => s.center && (s.center._id === selectedCenter._id || s.center === selectedCenter._id))
+    : staff;
 
   return (
     <View style={styles.container}>
@@ -179,7 +189,7 @@ export default function ManagePeople() {
         <ActivityIndicator animating style={{ marginTop: 40 }} />
       ) : activeTab === "agents" ? (
         <FlatList
-          data={agents}
+          data={filteredAgents}
           keyExtractor={(i) => i._id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
@@ -238,7 +248,7 @@ export default function ManagePeople() {
         />
       ) : (
         <FlatList
-          data={staff}
+          data={filteredStaff}
           keyExtractor={(i) => i._id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
@@ -315,7 +325,7 @@ export default function ManagePeople() {
                 style={styles.input}
                 contentStyle={{ justifyContent: "flex-start" }}
               >
-                {selectedCenter ? selectedCenter.name : "Select Center"}
+                {selectedCenterField ? selectedCenterField.name : "Select Center"}
               </Button>
             }
           >
@@ -323,7 +333,7 @@ export default function ManagePeople() {
               <Menu.Item
                 key={c._id}
                 onPress={() => {
-                  setSelectedCenter(c);
+                  setSelectedCenterField(c);
                   setMenuVisible(false);
                 }}
                 title={c.name}

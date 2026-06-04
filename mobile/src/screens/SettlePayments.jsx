@@ -2,9 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
 import { Text, Card, Button, TextInput, Snackbar, ActivityIndicator, SegmentedButtons, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
 export default function SettlePayments() {
+  const { selectedCenter, refreshTick } = useAuth();
   const [agents, setAgents] = useState([]);
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function SettlePayments() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData, refreshTick]);
 
   const handleSettle = async () => {
     if (!amount || parseFloat(amount) <= 0) { setSnack("Enter a valid amount"); return; }
@@ -59,6 +61,10 @@ export default function SettlePayments() {
   const typeLabels = { AgentToAdmin: "Agent → Admin", AdminToAgent: "Admin → Agent", AdminToLab: "Admin → Lab" };
   const typeColors = { AgentToAdmin: "#e53935", AdminToAgent: "#43a047", AdminToLab: "#1e88e5" };
   const typeIcons = { AgentToAdmin: "arrow-down-circle", AdminToAgent: "arrow-up-circle", AdminToLab: "flask" };
+
+  const filteredAgents = selectedCenter
+    ? agents.filter(a => a.center && (a.center._id === selectedCenter._id || a.center === selectedCenter._id))
+    : agents;
 
   return (
     <ScrollView style={styles.container}>
@@ -87,7 +93,7 @@ export default function SettlePayments() {
                     </Button>
                   }
                 >
-                  {agents.map(a => (
+                  {filteredAgents.map(a => (
                     <Menu.Item key={a._id} onPress={() => { setSelectedAgent(a); setAgentMenuVisible(false); }}
                       title={`${a.name} — Bal: ${a.balance?.toFixed(2)}`} />
                   ))}
