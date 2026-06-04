@@ -84,6 +84,7 @@ export default function AdminDashboard({ navigation }) {
         style={styles.header}
       >
         <View style={styles.headerInfo}>
+          <Text style={styles.brandTitle}>Rudraksh Foundation</Text>
           <Text style={styles.title}>Dashboard</Text>
           <Text style={styles.welcome}>Welcome back, {user?.name || "Admin"}</Text>
           <Menu
@@ -304,6 +305,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     elevation: 4
+  },
+  brandTitle: {
+    color: "#a3e4d7",
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: -2,
   },
   headerInfo: { flex: 1 },
   centerSelect: {

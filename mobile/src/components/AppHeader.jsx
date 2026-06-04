@@ -38,6 +38,7 @@ export default function AppHeader({ title }) {
       style={styles.header}
     >
       <View style={styles.leftContainer}>
+        <Text style={styles.brandTitle}>Rudraksh Foundation</Text>
         <Text style={styles.title} numberOfLines={1}>{title}</Text>
         {isAdmin && (
           <Menu
@@ -106,6 +107,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0.4,
+  },
+  brandTitle: {
+    color: "#a3e4d7",
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: -2,
   },
   leftContainer: {
     flex: 1,

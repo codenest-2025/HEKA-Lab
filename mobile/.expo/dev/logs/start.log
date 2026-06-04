@@ -1756,3 +1756,44 @@
 {"_e":"metro:bundling:done","_t":1780571081082,"id":"a","total":1,"ms":115.6704}
 {"_e":"metro:client_log","_t":1780571086480,"level":"log","data":["Socket.io connecting for user:","m"]}
 {"_e":"metro:client_log","_t":1780571089940,"level":"warn","data":["DateTimePicker: `onChange` is deprecated. Use `onValueChange`, `onDismiss`, and `onNeutralButtonPress` instead."]}
+{"_e":"root:init","_t":1780573889330,"format":"v0-jsonl","version":"56.1.12"}
+{"_e":"env:mode","_t":1780573889332,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1780573889338,"mode":"development","files":["../..\\..\\.env"],"env":{"EXPO_PUBLIC_API_BASE_URL":"http://192.168.1.10:5000"}}
+{"_e":"devserver:start","_t":1780573889817,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1780573890567,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1780573911388,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:bundling:started","_t":1780573921672,"id":"3","platform":"android","environment":null,"entry":"index.js"}
+{"_e":"metro:bundling:progress","_t":1780573921673,"id":"3","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:progress","_t":1780573921678,"id":"3","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:progress","_t":1780573921781,"id":"3","progress":0.049863323593175614,"total":206,"current":46}
+{"_e":"metro:bundling:progress","_t":1780573921883,"id":"3","progress":0.08187363493182272,"total":339,"current":97}
+{"_e":"metro:bundling:progress","_t":1780573921982,"id":"3","progress":0.1802588064803805,"total":464,"current":197}
+{"_e":"metro:bundling:progress","_t":1780573922082,"id":"3","progress":0.28038824760545444,"total":559,"current":296}
+{"_e":"metro:bundling:progress","_t":1780573922182,"id":"3","progress":0.3745598962725586,"total":616,"current":377}
+{"_e":"metro:bundling:progress","_t":1780573922286,"id":"3","progress":0.42115392359526427,"total":772,"current":501}
+{"_e":"metro:bundling:progress","_t":1780573922386,"id":"3","progress":0.5467665145804405,"total":852,"current":630}
+{"_e":"metro:bundling:progress","_t":1780573922486,"id":"3","progress":0.6591348898218284,"total":994,"current":807}
+{"_e":"metro:bundling:progress","_t":1780573922587,"id":"3","progress":0.8296396856076991,"total":1088,"current":991}
+{"_e":"metro:bundling:progress","_t":1780573922693,"id":"3","progress":0.9091789781471221,"total":1140,"current":1087}
+{"_e":"metro:bundling:progress","_t":1780573922792,"id":"3","progress":0.981269039581841,"total":1169,"current":1158}
+{"_e":"metro:bundling:progress","_t":1780573922895,"id":"3","progress":0.981269039581841,"total":1246,"current":1218}
+{"_e":"metro:bundling:progress","_t":1780573923001,"id":"3","progress":0.9984258168516337,"total":1270,"current":1269}
+{"_e":"metro:bundling:progress","_t":1780573923077,"id":"3","progress":0.999,"total":1270,"current":1270}
+{"_e":"metro:bundling:done","_t":1780573923206,"id":"3","total":1270,"ms":1533.2844}
+{"_e":"metro:client_log","_t":1780573931019,"level":"log","data":["Socket.io connecting for user:","m"]}
+{"_e":"metro:client_log","_t":1780573940840,"level":"warn","data":["Login API Error Details:","Request failed with status code 401","{\"message\": \"Invalid username or password\"}"]}
+{"_e":"metro:client_log","_t":1780573942947,"level":"warn","data":["Login API Error Details:","Request failed with status code 401","{\"message\": \"Invalid username or password\"}"]}
+{"_e":"metro:client_log","_t":1780573948020,"level":"warn","data":["Login API Error Details:","Request failed with status code 401","{\"message\": \"Invalid username or password\"}"]}
+{"_e":"metro:bundling:started","_t":1780573959356,"id":"6","platform":"android","environment":null,"entry":"index.js"}
+{"_e":"metro:bundling:progress","_t":1780573959356,"id":"6","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:done","_t":1780573959418,"id":"6","total":1,"ms":62.7056}
+{"_e":"metro:client_log","_t":1780573968744,"level":"warn","data":["Login API Error Details:","Request failed with status code 401","{\"message\": \"Invalid username or password\"}"]}
+{"_e":"metro:bundling:started","_t":1780574660198,"id":"9","platform":"android","environment":null,"entry":"index.js"}
+{"_e":"metro:bundling:progress","_t":1780574660199,"id":"9","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:progress","_t":1780574660203,"id":"9","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:done","_t":1780574660356,"id":"9","total":1,"ms":157.8252}
+{"_e":"metro:client_log","_t":1780574663738,"level":"log","data":["Socket.io connecting for user:","Default Admin"]}
+{"_e":"metro:bundling:started","_t":1780574731769,"id":"a","platform":"android","environment":null,"entry":"index.js"}
+{"_e":"metro:bundling:progress","_t":1780574731776,"id":"a","progress":0,"total":1,"current":0}
+{"_e":"metro:bundling:done","_t":1780574731873,"id":"a","total":1,"ms":103.5366}
+{"_e":"metro:client_log","_t":1780574735013,"level":"log","data":["Socket.io connecting for user:","Default Admin"]}
